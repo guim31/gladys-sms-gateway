@@ -9,15 +9,17 @@ A Gladys Assistant **external integration**: a Node.js service (Node 22+, ESM,
 no build step) that runs in its own sandboxed Docker container and talks to
 Gladys through
 [`@gladysassistant/integration-sdk`](https://github.com/GladysAssistant/integration-sdk-js),
-its only runtime dependency. It started from the official JavaScript template.
+its only runtime dependency. It started from the official JavaScript template, and sends and receives SMS
+through an Android phone running SMS Gateway for Android
+(`capcom6/android-sms-gateway`).
 
 ## Commands
 
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/hub.test.js              # one file
+node --test --test-name-pattern "limit"   # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -32,15 +34,24 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        registers every handler on the SDK (or its fake Gladys) around the hub
+src/hub.js                        the hub: internal timer, phones, followed messages, inbox, sending under the limit
+src/smsgate/client.js             SMS Gateway for Android API client (fetch injected), error kinds
+src/smsgate/model.js              defensive parsing of the API answers (devices, health, message state, inbox)
+src/devices.js                    one Gladys device per phone (feature keys, names in four languages)
+src/phone.js                      E.164 numbers: parsing, masking for the logs
+src/limiter.js                    hourly sending limit (sliding window, saved in /data)
+src/store.js                      /data persistence (atomic, coalesced writes)
+src/issues.js                     repeated failures logged once, recovery once
+src/actions.js                    Configuration screen actions (manifest `actions`)
+src/scenes.js                     scene action handler (manifest `scene_actions`)
+src/widgets.js                    dashboard widget (manifest `widgets`)
+src/texts.js                      every text sent to Gladys, in en/fr/de/es
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+scripts/probe.mjs                 read-only check of a real API (never sends an SMS)
+gladys-assistant-integration.json manifest: name, config_schema, actions, scenes, widget...
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
+test/                             node --test, against the SDK's fake Gladys and test/helpers/fakeSmsGate.js
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +81,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in four languages (English, French, German,
+  Spanish): action messages, manifest texts, feature names, widget texts, and
+  `docs/{en,fr,de,es}.md`, kept in sync (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -233,3 +245,64 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Spécifique à cette intégration (SMS Gateway for Android)
+
+Faits vérifiés dans le code de l'application (`capcom6/android-sms-gateway`), de son serveur
+(`android-sms-gateway/server`) et de son client officiel (`android-sms-gateway/client-ts`), tous
+Apache-2.0, le 14/10/2026 (application 1.77.2). **Aucun téléphone réel** n'a servi : les fixtures sont
+reconstruites depuis les sources (`test/fixtures/smsgate/README.md`), `npm run probe` les vérifie en
+lecture seule sur un vrai téléphone.
+
+**L'API, selon le mode**
+
+- **Local** : le serveur de l'application, HTTP, port 8080 par défaut, authentification Basic avec
+  l'utilisateur et le mot de passe de la carte « Local server ». Routes `/device` (un seul téléphone),
+  `/message`, `/message/{id}`, `/inbox`, et `/health` **sans authentification** : c'est la santé du
+  téléphone (`battery:level` en %, `battery:charging` en drapeaux 1 = en charge, 2 = secteur, 4 = USB,
+  `messages:failed`). Le serveur répond **500 avec le même corps** quand un contrôle échoue (batterie
+  sous 10 %) : c'est encore une lecture.
+- **Cloud** (`https://api.sms-gate.app/3rdparty/v1`) et **privé** (`<adresse>/3rdparty/v1`) : routes
+  `/devices` (tous les téléphones du compte, avec `lastSeen` et `deletedAt`), `/messages`,
+  `/messages/{id}`, `/inbox?deviceId=`. Leur `/health` est celle du **serveur**, pas du téléphone : pas
+  de batterie en cloud. `lastSeen` n'est mis à jour que quand le téléphone appelle le serveur : sans le
+  réglage « Ping » de l'application, il peut rester ancien alors que tout marche (d'où le réglage
+  « Téléphone injoignable après »).
+- Envoi : `{ textMessage: { text }, phoneNumbers, simNumber?, deviceId?, withDeliveryReport }`, réponse
+  **202** avec l'état (`Pending`, `Processed`, `Sent`, `Delivered`, `Failed`, `Cancelled`) par
+  destinataire. Depuis la 1.77.2, des **numéros en double** sont refusés (400). **503** = file pleine ou
+  téléphone hors ligne. Le texte va jusqu'à 65 535 caractères côté API ; l'intégration plafonne à 1600.
+- **Boîte de réception** (`GET /inbox`, application **1.59.0** et plus, 404 avant) : `contentPreview`
+  contient le **texte complet** d'un SMS (seuls les SMS de données sont tronqués), `createdAt` est
+  l'heure du téléphone, tri par date décroissante, `limit` 1 à 500. Un SMS chiffré de bout en bout
+  (`isEncrypted`, cloud) est illisible : ignoré, signalé une fois.
+
+**Pièges et choix**
+
+- **Webhooks** : l'application pousse `sms:received` par webhook, mais vers une URL que le téléphone
+  doit joindre ; le bac à sable ne publie aucun port. La spec 5.2.1 du cœur a bien un relais (B.17,
+  `webhooks` du manifeste, `onWebhook` du SDK, via **Gladys Plus** et la route générique de
+  `gladys-gateway`), mais il exige un abonnement Plus, un aller-retour Internet, et sa route côté
+  passerelle n'est pas vérifiable d'ici. **Choix** : lire `/inbox` à chaque cycle, ce qui marche dans
+  les trois modes sans rien exposer. Piste : un webhook Plus qui ne ferait que **déclencher** une
+  lecture anticipée (doctrine « trigger, not data »), jamais appliquer sa charge.
+- **Pas de rejeu** : à la première lecture d'un téléphone, la boîte est une **référence** (rien n'est
+  annoncé) ; ensuite chaque id vu est gardé 6 h dans `/data`, sur une fenêtre de lecture de 2 h (horloge
+  du téléphone décalée, cycle manqué).
+- **Limite horaire** : fenêtre glissante d'une heure, chaque destinataire compte, sauvegardée dans
+  `/data`. Un envoi parti en **timeout** compte aussi (il a pu partir) ; un envoi sans réponse
+  (téléphone éteint) ne compte pas.
+- **Compteurs** : « SMS envoyés » compte un destinataire passé à `Sent` ou `Delivered`, « SMS en
+  échec » un destinataire `Failed`, chacun une seule fois. Un message est suivi au plus 24 h (un
+  opérateur sans accusé de réception le laisse `Sent`), 10 lectures par cycle au plus.
+- **Type `device`, pas `communication`** : le brief demande un appareil « Passerelle SMS ». Le type
+  `communication` (`messaging.receive: false` + `contact_schema`, comme CallMeBot) ferait passer les
+  messages de Gladys (« Envoyer un message », messages système) par SMS, mais n'a pas d'écran
+  Appareils. Un seul type par manifeste : question ouverte pour Guilhem.
+- **Sécurité** : un SMS reçu n'est jamais une autorité (l'expéditeur se falsifie) ; la doc le dit et ne
+  propose aucune scène d'alarme ou d'ouverture déclenchée par SMS.
+- `transports: ["local", "cloud"]` fait afficher par le cœur l'interrupteur « Préférer la connexion
+  locale » (`GLADYS_PREFER_LOCAL`), sans effet ici : c'est le champ `mode` qui décide, la doc le dit.
+- Numéros d'exemple : plages fictives ARCEP (`+33 6 39 98 xx xx`) et Ofcom (`+44 7700 900xxx`), jamais
+  un numéro attribuable.
+- Le proxy de la session de code refuse `api.sms-gate.app` (403) : aucun appel réel n'a pu être fait.

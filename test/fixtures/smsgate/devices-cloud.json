@@ -1,0 +1,18 @@
+[
+  {
+    "id": "Hn3cVd6sPq1xYt0uJk5wR",
+    "name": "Old Pixel in the hallway",
+    "createdAt": "2026-01-15T09:12:03.512Z",
+    "updatedAt": "2026-10-12T07:58:41.020Z",
+    "lastSeen": "2026-10-12T07:58:41.020Z",
+    "simCards": [{ "slotIndex": 0, "simNumber": 1, "carrierName": "Operator A" }]
+  },
+  {
+    "id": "Zr8bMf2kLs7gWe4oQa9iT",
+    "name": "Retired phone",
+    "createdAt": "2025-11-01T12:00:00.000Z",
+    "updatedAt": "2026-02-01T12:00:00.000Z",
+    "lastSeen": "2026-02-01T12:00:00.000Z",
+    "deletedAt": "2026-02-01T12:00:00.000Z"
+  }
+]

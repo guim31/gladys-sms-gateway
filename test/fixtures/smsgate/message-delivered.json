@@ -1,0 +1,18 @@
+{
+  "id": "vT5yK0pR3sXq8mNw2bLcD",
+  "deviceId": "Qx7RkT2mWb9aLp4vZc8nE",
+  "state": "Delivered",
+  "isHashed": false,
+  "isEncrypted": false,
+  "recipients": [
+    { "phoneNumber": "+33639980012", "state": "Delivered" },
+    { "phoneNumber": "+447700900123", "state": "Delivered" }
+  ],
+  "states": {
+    "Pending": "2026-10-12T08:00:00.000Z",
+    "Processed": "2026-10-12T08:00:01.200Z",
+    "Sent": "2026-10-12T08:00:03.900Z",
+    "Delivered": "2026-10-12T08:00:09.400Z"
+  },
+  "createdAt": "2026-10-12T08:00:00.000Z"
+}

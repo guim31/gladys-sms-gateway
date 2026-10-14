@@ -1,0 +1,17 @@
+{
+  "id": "Fa1lEdM5gIdXq8mNw2bLc",
+  "deviceId": "Qx7RkT2mWb9aLp4vZc8nE",
+  "state": "Failed",
+  "isHashed": false,
+  "isEncrypted": false,
+  "recipients": [
+    { "phoneNumber": "+33639980012", "state": "Sent" },
+    { "phoneNumber": "+447700900123", "state": "Failed", "error": "RESULT_ERROR_GENERIC_FAILURE" }
+  ],
+  "states": {
+    "Pending": "2026-10-12T08:05:00.000Z",
+    "Processed": "2026-10-12T08:05:01.000Z",
+    "Failed": "2026-10-12T08:05:04.000Z"
+  },
+  "createdAt": "2026-10-12T08:05:00.000Z"
+}

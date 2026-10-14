@@ -1,177 +1,779 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "SMS Gateway for Android",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Send and receive SMS from Gladys with an Android phone and the free SMS Gateway app.",
+    "fr": "Envoyez et recevez des SMS depuis Gladys avec un téléphone Android et l'appli SMS Gateway.",
+    "de": "Sende und empfange SMS aus Gladys mit einem Android-Telefon und der freien App SMS Gateway.",
+    "es": "Envíe y reciba SMS desde Gladys con un teléfono Android y la aplicación libre SMS Gateway."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-sms-gateway:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-sms-gateway/main/cover.png",
+  "categories": ["notifications"],
   "transports": ["local", "cloud"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "How it works",
+        "fr": "Fonctionnement",
+        "de": "So funktioniert es",
+        "es": "Funcionamiento"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Install the free SMS Gateway for Android app on a phone with a SIM card (an old phone is fine), and choose how Gladys reaches it: on the local network (the app's Local server), or through the project's cloud server or your own server. The app shows the username and password to enter below. Gladys then sends SMS from scenes and reads the SMS the phone receives. Your operator's prices apply.",
+        "fr": "Installez l'application libre SMS Gateway for Android sur un téléphone équipé d'une carte SIM (un vieux téléphone convient), puis choisissez comment Gladys le joint : sur le réseau local (« Local server » de l'application), ou via le serveur cloud du projet ou votre propre serveur. L'application affiche l'utilisateur et le mot de passe à saisir ci-dessous. Gladys envoie alors des SMS depuis les scènes et lit les SMS reçus par le téléphone. Les tarifs de votre opérateur s'appliquent.",
+        "de": "Installiere die freie App SMS Gateway for Android auf einem Telefon mit SIM-Karte (ein altes Telefon reicht) und wähle, wie Gladys es erreicht: im lokalen Netzwerk („Local server“ der App), über den Cloud-Server des Projekts oder über deinen eigenen Server. Die App zeigt den Benutzernamen und das Passwort an, die du unten einträgst. Gladys sendet dann SMS aus Szenen und liest die SMS, die das Telefon empfängt. Es gelten die Tarife deines Anbieters.",
+        "es": "Instale la aplicación libre SMS Gateway for Android en un teléfono con tarjeta SIM (un teléfono antiguo sirve) y elija cómo lo contacta Gladys: en la red local («Local server» de la aplicación), o a través del servidor en la nube del proyecto o de su propio servidor. La aplicación muestra el usuario y la contraseña que debe introducir abajo. Gladys envía entonces SMS desde las escenas y lee los SMS que recibe el teléfono. Se aplican las tarifas de su operador."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/capcom6/android-sms-gateway/releases",
+          "label": {
+            "en": "Download the app",
+            "fr": "Télécharger l'application",
+            "de": "App herunterladen",
+            "es": "Descargar la aplicación"
+          }
+        },
+        {
+          "url": "https://docs.sms-gate.app/",
+          "label": {
+            "en": "App documentation",
+            "fr": "Documentation de l'application",
+            "de": "Dokumentation der App",
+            "es": "Documentación de la aplicación"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
+      "key": "mode",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
-      "required": false,
-      "default": "celsius",
+      "display": "radio",
+      "label": {
+        "en": "Connection",
+        "fr": "Connexion",
+        "de": "Verbindung",
+        "es": "Conexión"
+      },
+      "description": {
+        "en": "Local: the phone is on the same network as Gladys. Cloud: through api.sms-gate.app. Private server: your own server.",
+        "fr": "Local : le téléphone est sur le même réseau que Gladys. Cloud : via api.sms-gate.app. Serveur privé : votre propre serveur.",
+        "de": "Lokal: Das Telefon ist im selben Netzwerk wie Gladys. Cloud: über api.sms-gate.app. Privater Server: dein eigener Server.",
+        "es": "Local: el teléfono está en la misma red que Gladys. Nube: a través de api.sms-gate.app. Servidor privado: su propio servidor."
+      },
+      "required": true,
+      "default": "local",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "local",
+          "label": {
+            "en": "Local network",
+            "fr": "Réseau local",
+            "de": "Lokales Netzwerk",
+            "es": "Red local"
+          }
+        },
+        {
+          "value": "cloud",
+          "label": {
+            "en": "Cloud server",
+            "fr": "Serveur cloud",
+            "de": "Cloud-Server",
+            "es": "Servidor en la nube"
+          }
+        },
+        {
+          "value": "private",
+          "label": {
+            "en": "Private server",
+            "fr": "Serveur privé",
+            "de": "Privater Server",
+            "es": "Servidor privado"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "local_address",
+      "type": "string",
+      "label": {
+        "en": "Phone address (local)",
+        "fr": "Adresse du téléphone (local)",
+        "de": "Adresse des Telefons (lokal)",
+        "es": "Dirección del teléfono (local)"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "The address shown on the app's Local server card. Port 8080 when none is given. Give the phone a fixed address in your router.",
+        "fr": "L'adresse affichée sur la carte « Local server » de l'application. Port 8080 si aucun n'est donné. Donnez au téléphone une adresse fixe dans votre box.",
+        "de": "Die Adresse auf der Karte „Local server“ der App. Port 8080, wenn keiner angegeben ist. Gib dem Telefon eine feste Adresse in deinem Router.",
+        "es": "La dirección que muestra la tarjeta «Local server» de la aplicación. Puerto 8080 si no se indica ninguno. Asigne al teléfono una dirección fija en su router."
+      },
+      "placeholder": {
+        "en": "e.g. 192.168.1.50:8080",
+        "fr": "ex. 192.168.1.50:8080",
+        "de": "z. B. 192.168.1.50:8080",
+        "es": "p. ej. 192.168.1.50:8080"
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": ""
+    },
+    {
+      "key": "server_url",
+      "type": "string",
+      "label": {
+        "en": "Server address (private)",
+        "fr": "Adresse du serveur (privé)",
+        "de": "Serveradresse (privat)",
+        "es": "Dirección del servidor (privado)"
+      },
+      "description": {
+        "en": "Private server mode only: the address of your SMS Gateway server.",
+        "fr": "Mode serveur privé uniquement : l'adresse de votre serveur SMS Gateway.",
+        "de": "Nur im Modus privater Server: die Adresse deines SMS-Gateway-Servers.",
+        "es": "Solo en modo servidor privado: la dirección de su servidor SMS Gateway."
+      },
+      "placeholder": {
+        "en": "e.g. https://sms.example.com",
+        "fr": "ex. https://sms.example.com",
+        "de": "z. B. https://sms.example.com",
+        "es": "p. ej. https://sms.example.com"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "username",
+      "type": "string",
+      "label": {
+        "en": "Username",
+        "fr": "Utilisateur",
+        "de": "Benutzername",
+        "es": "Usuario"
+      },
+      "description": {
+        "en": "Shown by the app on its Local server card (local mode) or Cloud server card (cloud and private modes).",
+        "fr": "Affiché par l'application sur sa carte « Local server » (mode local) ou « Cloud server » (modes cloud et privé).",
+        "de": "Wird von der App auf der Karte „Local server“ (lokaler Modus) oder „Cloud server“ (Cloud und privat) angezeigt.",
+        "es": "Lo muestra la aplicación en su tarjeta «Local server» (modo local) o «Cloud server» (modos nube y privado)."
+      },
+      "required": true,
+      "default": ""
+    },
+    {
+      "key": "password",
+      "type": "secret",
+      "label": {
+        "en": "Password",
+        "fr": "Mot de passe",
+        "de": "Passwort",
+        "es": "Contraseña"
+      },
+      "required": true
+    },
+    {
+      "key": "sending",
+      "type": "section",
+      "label": {
+        "en": "Sending safety",
+        "fr": "Sécurité des envois",
+        "de": "Sicherheit beim Senden",
+        "es": "Seguridad de los envíos"
+      },
+      "description": {
+        "en": "An SMS can cost money, and a scene can loop. Beyond the hourly limit, Gladys refuses to send and says why. A message to three numbers counts as three SMS.",
+        "fr": "Un SMS peut coûter de l'argent, et une scène peut boucler. Au-delà de la limite horaire, Gladys refuse l'envoi et dit pourquoi. Un message à trois numéros compte pour trois SMS.",
+        "de": "Eine SMS kann Geld kosten, und eine Szene kann in eine Schleife geraten. Über der Stundengrenze verweigert Gladys das Senden und sagt, warum. Eine Nachricht an drei Nummern zählt als drei SMS.",
+        "es": "Un SMS puede costar dinero, y una escena puede entrar en bucle. Por encima del límite por hora, Gladys rechaza el envío e indica el motivo. Un mensaje a tres números cuenta como tres SMS."
+      }
+    },
+    {
+      "key": "max_sms_per_hour",
+      "type": "number",
+      "label": {
+        "en": "SMS per hour, at most",
+        "fr": "SMS par heure, au plus",
+        "de": "SMS pro Stunde, höchstens",
+        "es": "SMS por hora, como máximo"
+      },
+      "required": true,
+      "default": 20,
+      "min": 1,
+      "max": 200
+    },
+    {
+      "key": "receiving",
+      "type": "section",
+      "label": {
+        "en": "Received SMS and refresh",
+        "fr": "SMS reçus et rafraîchissement",
+        "de": "Empfangene SMS und Aktualisierung",
+        "es": "SMS recibidos y actualización"
+      },
+      "description": {
+        "en": "Gladys reads the phone at the chosen interval: its state, the SMS sent, and the SMS received (app 1.59.0 or later), which start the scenes with the SMS received trigger.",
+        "fr": "Gladys lit le téléphone à l'intervalle choisi : son état, les SMS envoyés, et les SMS reçus (application 1.59.0 ou plus), qui lancent les scènes du déclencheur SMS reçu.",
+        "de": "Gladys liest das Telefon im gewählten Abstand: seinen Zustand, die gesendeten und die empfangenen SMS (App 1.59.0 oder neuer), die Szenen mit dem Auslöser SMS empfangen starten.",
+        "es": "Gladys lee el teléfono con el intervalo elegido: su estado, los SMS enviados y los SMS recibidos (aplicación 1.59.0 o posterior), que inician las escenas con el disparador SMS recibido."
+      }
+    },
+    {
+      "key": "receive_sms",
+      "type": "boolean",
+      "label": {
+        "en": "Read the SMS received",
+        "fr": "Lire les SMS reçus",
+        "de": "Empfangene SMS lesen",
+        "es": "Leer los SMS recibidos"
+      },
+      "required": false,
+      "default": true
+    },
+    {
+      "key": "poll_interval",
+      "type": "select",
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle de rafraîchissement",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
+      "required": false,
+      "default": "60",
+      "options": [
+        {
+          "value": "30",
+          "label": {
+            "en": "30 seconds",
+            "fr": "30 secondes",
+            "de": "30 Sekunden",
+            "es": "30 segundos"
+          }
+        },
+        {
+          "value": "60",
+          "label": { "en": "1 minute", "fr": "1 minute", "de": "1 Minute", "es": "1 minuto" }
+        },
+        {
+          "value": "120",
+          "label": { "en": "2 minutes", "fr": "2 minutes", "de": "2 Minuten", "es": "2 minutos" }
+        },
+        {
+          "value": "300",
+          "label": { "en": "5 minutes", "fr": "5 minutes", "de": "5 Minuten", "es": "5 minutos" }
+        }
+      ]
+    },
+    {
+      "key": "offline_after_minutes",
+      "type": "select",
+      "label": {
+        "en": "Phone unreachable after (cloud)",
+        "fr": "Téléphone injoignable après (cloud)",
+        "de": "Telefon nicht erreichbar nach (Cloud)",
+        "es": "Teléfono inaccesible tras (nube)"
+      },
+      "description": {
+        "en": "Cloud and private modes: how long without contact with the server before the phone counts as unreachable. Turn on the app's Ping setting to keep it in contact.",
+        "fr": "Modes cloud et privé : durée sans contact avec le serveur avant que le téléphone soit compté injoignable. Activez le réglage Ping de l'application pour qu'il garde le contact.",
+        "de": "Cloud und privater Server: wie lange ohne Kontakt zum Server, bis das Telefon als nicht erreichbar gilt. Aktiviere die Einstellung Ping der App, damit es in Kontakt bleibt.",
+        "es": "Modos nube y privado: tiempo sin contacto con el servidor antes de considerar el teléfono inaccesible. Active el ajuste Ping de la aplicación para que mantenga el contacto."
+      },
+      "required": false,
+      "default": "60",
+      "options": [
+        {
+          "value": "15",
+          "label": {
+            "en": "15 minutes",
+            "fr": "15 minutes",
+            "de": "15 Minuten",
+            "es": "15 minutos"
+          }
+        },
+        {
+          "value": "60",
+          "label": { "en": "1 hour", "fr": "1 heure", "de": "1 Stunde", "es": "1 hora" }
+        },
+        {
+          "value": "360",
+          "label": { "en": "6 hours", "fr": "6 heures", "de": "6 Stunden", "es": "6 horas" }
+        },
+        {
+          "value": "1440",
+          "label": { "en": "1 day", "fr": "1 jour", "de": "1 Tag", "es": "1 día" }
+        }
+      ]
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of names and messages",
+        "fr": "Langue des noms et messages",
+        "de": "Sprache der Namen und Meldungen",
+        "es": "Idioma de nombres y mensajes"
+      },
+      "description": {
+        "en": "Names of the devices and features (fixed once added), and messages of the scene actions.",
+        "fr": "Noms des appareils et fonctionnalités (figés une fois ajoutés), et messages des actions de scène.",
+        "de": "Namen der Geräte und Funktionen (nach dem Hinzufügen fest) und Meldungen der Szenenaktionen.",
+        "es": "Nombres de los dispositivos y funciones (fijos una vez añadidos) y mensajes de las acciones de escena."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": { "en": "English", "fr": "Anglais", "de": "Englisch", "es": "Inglés" }
+        },
+        {
+          "value": "fr",
+          "label": { "en": "French", "fr": "Français", "de": "Französisch", "es": "Francés" }
+        },
+        {
+          "value": "de",
+          "label": { "en": "German", "fr": "Allemand", "de": "Deutsch", "es": "Alemán" }
+        },
+        {
+          "value": "es",
+          "label": { "en": "Spanish", "fr": "Espagnol", "de": "Spanisch", "es": "Español" }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "description": {
+        "en": "Reads the phone now: reachable, battery, app version, SMS sent this hour.",
+        "fr": "Lit le téléphone maintenant : joignable, batterie, version de l'application, SMS de l'heure.",
+        "de": "Liest das Telefon jetzt: erreichbar, Akku, App-Version, SMS dieser Stunde.",
+        "es": "Lee el teléfono ahora: accesible, batería, versión de la aplicación, SMS de esta hora."
+      },
       "timeout_seconds": 30
     },
     {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "send_test_sms",
+      "label": {
+        "en": "Send a test SMS",
+        "fr": "Envoyer un SMS de test",
+        "de": "Test-SMS senden",
+        "es": "Enviar un SMS de prueba"
+      },
+      "description": {
+        "en": "Sends one SMS to the number typed, under the same hourly limit as the scenes.",
+        "fr": "Envoie un SMS au numéro saisi, sous la même limite horaire que les scènes.",
+        "de": "Sendet eine SMS an die eingegebene Nummer, mit derselben Stundengrenze wie die Szenen.",
+        "es": "Envía un SMS al número introducido, con el mismo límite por hora que las escenas."
+      },
+      "timeout_seconds": 30,
       "fields": [
         {
-          "key": "device",
+          "key": "phone_number",
+          "type": "string",
+          "label": {
+            "en": "Number (international format)",
+            "fr": "Numéro (format international)",
+            "de": "Nummer (internationales Format)",
+            "es": "Número (formato internacional)"
+          },
+          "placeholder": {
+            "en": "+33639980012",
+            "fr": "+33639980012",
+            "de": "+33639980012",
+            "es": "+33639980012"
+          }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "label": {
+            "en": "Text (optional)",
+            "fr": "Texte (facultatif)",
+            "de": "Text (optional)",
+            "es": "Texto (opcional)"
+          }
+        },
+        {
+          "key": "sim_number",
           "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "label": {
+            "en": "SIM card",
+            "fr": "Carte SIM",
+            "de": "SIM-Karte",
+            "es": "Tarjeta SIM"
+          },
+          "options": [
+            {
+              "value": "default",
+              "label": {
+                "en": "Phone default",
+                "fr": "Celle par défaut",
+                "de": "Standard des Telefons",
+                "es": "La predeterminada"
+              }
+            },
+            {
+              "value": "1",
+              "label": { "en": "SIM 1", "fr": "SIM 1", "de": "SIM 1", "es": "SIM 1" }
+            },
+            {
+              "value": "2",
+              "label": { "en": "SIM 2", "fr": "SIM 2", "de": "SIM 2", "es": "SIM 2" }
+            },
+            {
+              "value": "3",
+              "label": { "en": "SIM 3", "fr": "SIM 3", "de": "SIM 3", "es": "SIM 3" }
+            }
+          ]
         }
       ]
+    },
+    {
+      "key": "recent_messages",
+      "label": {
+        "en": "Recent SMS",
+        "fr": "Derniers SMS",
+        "de": "Letzte SMS",
+        "es": "Últimos SMS"
+      },
+      "description": {
+        "en": "The last SMS sent by Gladys and their state: pending, sent, delivered or failed.",
+        "fr": "Les derniers SMS envoyés par Gladys et leur état : en attente, envoyé, délivré ou échec.",
+        "de": "Die letzten von Gladys gesendeten SMS und ihr Zustand: ausstehend, gesendet, zugestellt oder fehlgeschlagen.",
+        "es": "Los últimos SMS enviados por Gladys y su estado: pendiente, enviado, entregado o fallido."
+      },
+      "timeout_seconds": 15
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "sms_received",
+      "label": {
+        "en": "SMS received",
+        "fr": "SMS reçu",
+        "de": "SMS empfangen",
+        "es": "SMS recibido"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "The phone of the SMS gateway received an SMS.",
+        "fr": "Le téléphone de la passerelle SMS a reçu un SMS.",
+        "de": "Das Telefon des SMS-Gateways hat eine SMS empfangen.",
+        "es": "El teléfono de la pasarela SMS ha recibido un SMS."
+      },
+      "fields": [
+        {
+          "key": "sender",
+          "type": "string",
+          "label": {
+            "en": "Sender (empty: anyone)",
+            "fr": "Expéditeur (vide : n'importe qui)",
+            "de": "Absender (leer: alle)",
+            "es": "Remitente (vacío: cualquiera)"
+          },
+          "description": {
+            "en": "Exactly as the phone shows it: +33639980012, or a name for a service.",
+            "fr": "Exactement comme le téléphone l'affiche : +33639980012, ou un nom pour un service.",
+            "de": "Genau wie das Telefon ihn anzeigt: +33639980012, oder ein Name bei einem Dienst.",
+            "es": "Exactamente como lo muestra el teléfono: +33639980012, o un nombre para un servicio."
+          },
+          "placeholder": {
+            "en": "+33639980012",
+            "fr": "+33639980012",
+            "de": "+33639980012",
+            "es": "+33639980012"
+          }
+        },
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Phone (empty: any)",
+            "fr": "Téléphone (vide : n'importe lequel)",
+            "de": "Telefon (leer: alle)",
+            "es": "Teléfono (vacío: cualquiera)"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "sender",
+          "type": "string",
+          "label": { "en": "Sender", "fr": "Expéditeur", "de": "Absender", "es": "Remitente" }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "label": {
+            "en": "Text of the SMS",
+            "fr": "Texte du SMS",
+            "de": "Text der SMS",
+            "es": "Texto del SMS"
+          }
+        },
+        {
+          "key": "received_at",
+          "type": "string",
+          "label": {
+            "en": "Received at",
+            "fr": "Reçu à",
+            "de": "Empfangen um",
+            "es": "Recibido a las"
+          }
+        },
+        {
+          "key": "sim_number",
+          "type": "number",
+          "label": {
+            "en": "SIM card",
+            "fr": "Carte SIM",
+            "de": "SIM-Karte",
+            "es": "Tarjeta SIM"
+          }
+        }
+      ]
+    },
+    {
+      "key": "sms_failed",
+      "label": {
+        "en": "SMS failed",
+        "fr": "SMS en échec",
+        "de": "SMS fehlgeschlagen",
+        "es": "SMS fallido"
+      },
+      "description": {
+        "en": "An SMS sent by Gladys could not be sent or delivered.",
+        "fr": "Un SMS envoyé par Gladys n'a pas pu partir ou être délivré.",
+        "de": "Eine von Gladys gesendete SMS konnte nicht gesendet oder zugestellt werden.",
+        "es": "Un SMS enviado por Gladys no se ha podido enviar o entregar."
       },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
-        },
-        {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
+          "label": {
+            "en": "Phone (empty: any)",
+            "fr": "Téléphone (vide : n'importe lequel)",
+            "de": "Telefon (leer: alle)",
+            "es": "Teléfono (vacío: cualquiera)"
+          }
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "recipients",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Recipients not reached",
+            "fr": "Destinataires non atteints",
+            "de": "Nicht erreichte Empfänger",
+            "es": "Destinatarios no alcanzados"
+          }
+        },
+        {
+          "key": "error",
+          "type": "string",
+          "label": {
+            "en": "Reason given by the phone",
+            "fr": "Raison donnée par le téléphone",
+            "de": "Vom Telefon genannter Grund",
+            "es": "Motivo indicado por el teléfono"
+          }
+        },
+        {
+          "key": "message_id",
+          "type": "string",
+          "label": {
+            "en": "Message identifier",
+            "fr": "Identifiant du message",
+            "de": "Kennung der Nachricht",
+            "es": "Identificador del mensaje"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "send_sms",
+      "label": {
+        "en": "Send an SMS",
+        "fr": "Envoyer un SMS",
+        "de": "SMS senden",
+        "es": "Enviar un SMS"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Sends an SMS from the phone of the SMS gateway, under the hourly limit of the integration.",
+        "fr": "Envoie un SMS depuis le téléphone de la passerelle SMS, sous la limite horaire de l'intégration.",
+        "de": "Sendet eine SMS vom Telefon des SMS-Gateways, mit der Stundengrenze der Integration.",
+        "es": "Envía un SMS desde el teléfono de la pasarela SMS, con el límite por hora de la integración."
+      },
+      "timeout_seconds": 30,
       "fields": [
+        {
+          "key": "phone_numbers",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Numbers (international format)",
+            "fr": "Numéros (format international)",
+            "de": "Nummern (internationales Format)",
+            "es": "Números (formato internacional)"
+          },
+          "description": {
+            "en": "Several numbers separated by commas, 10 at most.",
+            "fr": "Plusieurs numéros séparés par des virgules, 10 au plus.",
+            "de": "Mehrere Nummern durch Kommas getrennt, höchstens 10.",
+            "es": "Varios números separados por comas, 10 como máximo."
+          },
+          "placeholder": {
+            "en": "+33639980012, +33639980034",
+            "fr": "+33639980012, +33639980034",
+            "de": "+33639980012, +33639980034",
+            "es": "+33639980012, +33639980034"
+          }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Text",
+            "fr": "Texte",
+            "de": "Text",
+            "es": "Texto"
+          },
+          "description": {
+            "en": "Type {{ to insert information from the scene. 1600 characters at most.",
+            "fr": "Tapez {{ pour insérer une information de la scène. 1600 caractères au plus.",
+            "de": "Tippe {{, um eine Information der Szene einzufügen. Höchstens 1600 Zeichen.",
+            "es": "Escriba {{ para insertar información de la escena. 1600 caracteres como máximo."
+          }
+        },
+        {
+          "key": "sim_number",
+          "type": "select",
+          "default": "default",
+          "label": {
+            "en": "SIM card",
+            "fr": "Carte SIM",
+            "de": "SIM-Karte",
+            "es": "Tarjeta SIM"
+          },
+          "options": [
+            {
+              "value": "default",
+              "label": {
+                "en": "Phone default",
+                "fr": "Celle par défaut",
+                "de": "Standard des Telefons",
+                "es": "La predeterminada"
+              }
+            },
+            {
+              "value": "1",
+              "label": { "en": "SIM 1", "fr": "SIM 1", "de": "SIM 1", "es": "SIM 1" }
+            },
+            {
+              "value": "2",
+              "label": { "en": "SIM 2", "fr": "SIM 2", "de": "SIM 2", "es": "SIM 2" }
+            },
+            {
+              "value": "3",
+              "label": { "en": "SIM 3", "fr": "SIM 3", "de": "SIM 3", "es": "SIM 3" }
+            }
+          ]
+        },
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "label": {
+            "en": "Phone (cloud, several phones)",
+            "fr": "Téléphone (cloud, plusieurs téléphones)",
+            "de": "Telefon (Cloud, mehrere Telefone)",
+            "es": "Teléfono (nube, varios teléfonos)"
+          }
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "message_id",
+          "type": "string",
+          "label": {
+            "en": "Message identifier",
+            "fr": "Identifiant du message",
+            "de": "Kennung der Nachricht",
+            "es": "Identificador del mensaje"
+          }
+        },
+        {
+          "key": "recipients",
+          "type": "number",
+          "label": {
+            "en": "Number of recipients",
+            "fr": "Nombre de destinataires",
+            "de": "Anzahl der Empfänger",
+            "es": "Número de destinatarios"
+          }
+        },
+        {
+          "key": "state",
+          "type": "string",
+          "label": {
+            "en": "State when queued",
+            "fr": "État à la mise en file",
+            "de": "Zustand beim Einreihen",
+            "es": "Estado al ponerse en cola"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "sms_gateway",
+      "label": {
+        "en": "SMS gateway",
+        "fr": "Passerelle SMS",
+        "de": "SMS-Gateway",
+        "es": "Pasarela SMS"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Phone reachable, battery, SMS this hour and the state of the last SMS sent.",
+        "fr": "Téléphone joignable, batterie, SMS de l'heure et état des derniers SMS envoyés.",
+        "de": "Telefon erreichbar, Akku, SMS dieser Stunde und Zustand der letzten gesendeten SMS.",
+        "es": "Teléfono accesible, batería, SMS de esta hora y estado de los últimos SMS enviados."
+      },
+      "icon": "message-square",
+      "settings": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Phone (empty: all)",
+            "fr": "Téléphone (vide : tous)",
+            "de": "Telefon (leer: alle)",
+            "es": "Teléfono (vacío: todos)"
+          }
+        }
+      ],
+      "action_timeout_seconds": 30
     }
   ]
 }

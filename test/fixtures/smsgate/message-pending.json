@@ -1,0 +1,13 @@
+{
+  "id": "vT5yK0pR3sXq8mNw2bLcD",
+  "deviceId": "Qx7RkT2mWb9aLp4vZc8nE",
+  "state": "Pending",
+  "isHashed": false,
+  "isEncrypted": false,
+  "recipients": [
+    { "phoneNumber": "+33639980012", "state": "Pending" },
+    { "phoneNumber": "+447700900123", "state": "Pending" }
+  ],
+  "states": { "Pending": "2026-10-12T08:00:00.000Z" },
+  "createdAt": "2026-10-12T08:00:00.000Z"
+}

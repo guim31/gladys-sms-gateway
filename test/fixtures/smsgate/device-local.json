@@ -1,0 +1,13 @@
+[
+  {
+    "id": "Qx7RkT2mWb9aLp4vZc8nE",
+    "name": "samsung/a52qnsxx",
+    "createdAt": "2026-03-02T18:21:44.000+01:00",
+    "updatedAt": "2026-10-12T10:00:00.000+02:00",
+    "lastSeen": "2026-10-12T10:00:00.000+02:00",
+    "simCards": [
+      { "slotIndex": 0, "simNumber": 1, "carrierName": "Operator A" },
+      { "slotIndex": 1, "simNumber": 2, "carrierName": "Operator B" }
+    ]
+  }
+]

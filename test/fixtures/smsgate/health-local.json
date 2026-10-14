@@ -1,0 +1,37 @@
+{
+  "status": "warn",
+  "checks": {
+    "messages:failed": {
+      "status": "pass",
+      "observedValue": 0,
+      "observedUnit": "messages",
+      "description": "Failed messages for last hour"
+    },
+    "connection:status": {
+      "status": "pass",
+      "observedValue": 1,
+      "observedUnit": "boolean",
+      "description": "Internet connection status"
+    },
+    "connection:transport": {
+      "status": "pass",
+      "observedValue": 2,
+      "observedUnit": "flags",
+      "description": "Network transport type"
+    },
+    "battery:level": {
+      "status": "warn",
+      "observedValue": 23,
+      "observedUnit": "percent",
+      "description": "Battery level in percent"
+    },
+    "battery:charging": {
+      "status": "pass",
+      "observedValue": 5,
+      "observedUnit": "flags",
+      "description": "Is the phone charging?"
+    }
+  },
+  "version": "1.77.2",
+  "releaseId": 1772
+}

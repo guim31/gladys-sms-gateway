@@ -1,0 +1,19 @@
+[
+  {
+    "id": "In2bOxMs9gA7kQ1pZt5vW",
+    "type": "SMS",
+    "sender": "+33639980034",
+    "recipient": "+33639980099",
+    "simNumber": 1,
+    "contentPreview": "Alarm code ok, I am home in 10 minutes",
+    "createdAt": "2026-10-12T07:59:30.000Z"
+  },
+  {
+    "id": "In8cPyNt0hB6lR2qAu4xY",
+    "type": "SMS",
+    "sender": "AMELI",
+    "simNumber": 2,
+    "contentPreview": "Your reimbursement was paid.",
+    "createdAt": "2026-10-12T07:40:00.000Z"
+  }
+]

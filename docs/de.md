@@ -1,0 +1,212 @@
+# SMS Gateway for Android
+
+Sende SMS aus deinen Gladys-Szenen und starte Szenen, wenn eine SMS ankommt –
+mit einem Android-Telefon und der freien App
+[SMS Gateway for Android](https://github.com/capcom6/android-sms-gateway). Das
+funktioniert mit jedem Mobilfunkanbieter und ohne kostenpflichtigen
+Drittanbieterdienst: Ein altes Telefon mit SIM-Karte genügt.
+
+**Ohne die Hardware entwickelt: Rückmeldungen willkommen.** Diese Integration
+wurde gegen eine Simulation der API der App geschrieben und getestet, nicht mit
+einem echten Telefon. Melde, was funktioniert und was nicht, auf
+[GitHub](https://github.com/guim31/gladys-sms-gateway/issues).
+
+Diese Integration ist nicht mit dem Projekt SMS Gateway for Android verbunden.
+
+## Voraussetzungen
+
+- Gladys 5.1.0 oder neuer.
+- Ein Android-Telefon (5.0 oder neuer) mit einer SIM-Karte, die SMS senden
+  kann, dauerhaft am Strom.
+- Die App SMS Gateway for Android, Version 1.59.0 oder neuer, um empfangene
+  SMS zu lesen:
+  [lade sie von GitHub herunter](https://github.com/capcom6/android-sms-gateway/releases).
+- Für jede gesendete SMS gelten die Tarife deines Anbieters.
+
+## Konfiguration
+
+Öffne die App und wähle, wie Gladys das Telefon erreicht.
+
+### Lokales Netzwerk (empfohlen)
+
+1. Aktiviere in der App **Local server**. Die App zeigt die Adresse (zum Beispiel
+   `192.168.1.50:8080`), einen Benutzernamen und ein Passwort.
+2. Gib dem Telefon eine feste Adresse in deinem Router.
+3. Wähle in Gladys **Lokales Netzwerk** und trage die Adresse, den
+   Benutzernamen und das Passwort ein.
+
+Nichts verlässt dein Zuhause: Gladys spricht über dein Netzwerk mit dem
+Telefon.
+
+### Cloud-Server
+
+1. Aktiviere in der App **Cloud server**. Die App zeigt einen Benutzernamen und ein
+   Passwort.
+2. Wähle in Gladys **Cloud-Server** und trage den Benutzernamen und das
+   Passwort ein.
+
+Die SMS laufen über den öffentlichen Server des Projekts, `api.sms-gate.app`,
+den sein Autor betreibt. Aktiviere die Einstellung **Ping** der App, damit der
+Server weiß, dass das Telefon lebt, und wähle unter **Telefon nicht erreichbar
+nach (Cloud)**, wie lange eine Funkstille in Ordnung ist.
+
+### Privater Server
+
+Wenn du den SMS-Gateway-Server selbst betreibst, wähle **Privater Server** und
+trage seine Adresse ein (zum Beispiel `https://sms.example.com`), dann den
+Benutzernamen und das Passwort der Karte **Cloud server** der App. Der
+Schalter „Lokale Verbindung bevorzugen“ von Gladys hat hier keine Wirkung: Es
+entscheidet die Einstellung **Verbindung**.
+
+### Sicherheit beim Senden
+
+Eine SMS kann Geld kosten, und eine Szene kann in eine Schleife geraten (zum
+Beispiel eine Szene, die auf jede empfangene SMS antwortet und an eine
+automatische Antwort gerät). **SMS pro Stunde, höchstens** (standardmäßig 20)
+begrenzt, was Gladys in jeder gleitenden Stunde sendet: Darüber wird die SMS
+abgelehnt, und die Szene sagt warum und wann die nächste möglich ist. Eine
+Nachricht an drei Nummern zählt als drei SMS. Die Grenze übersteht einen
+Neustart der Integration.
+
+### Empfangene SMS und Aktualisierung
+
+Gladys liest das Telefon im **Aktualisierungsintervall** (standardmäßig 1
+Minute): seinen Zustand, die gesendeten SMS und die empfangenen SMS, die die
+Szenen mit dem Auslöser **SMS empfangen** starten. Schalte **Empfangene SMS
+lesen** aus, wenn du nur sendest. **Sprache der Namen und Meldungen** legt die
+Namen der Geräte (standardmäßig Französisch) und die Sprache der Meldungen der
+Szenenaktion fest.
+
+## Das Gerät
+
+Jedes Telefon wird im Tab Entdecken zu einem Gerät **SMS-Gateway** mit:
+
+| Funktion            | Was sie zeigt                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| Telefon erreichbar  | 1, wenn das Telefon antwortet (lokal) oder sich kürzlich beim Server gemeldet hat   |
+| Akku des Telefons   | Akkustand in Prozent (nur lokaler Modus)                                            |
+| Telefon lädt        | 1, wenn das Telefon lädt (nur lokaler Modus)                                        |
+| Gesendete SMS       | Von Gladys gesendete SMS seit der Installation der Integration (eine pro Empfänger) |
+| Fehlgeschlagene SMS | SMS, die nicht gesendet oder zugestellt werden konnten                              |
+| Empfangene SMS      | SMS, die empfangen wurden, während Gladys das Telefon las                           |
+
+Eine Szene kann sie wie jedes Gerät nutzen: „wenn Akku des Telefons unter 20
+ist“ oder „wenn Telefon erreichbar 0 ist“, um über einen anderen Kanal gewarnt
+zu werden.
+
+## Szenenaktion: SMS senden
+
+Die Aktion **SMS senden** sendet eine Nachricht:
+
+- **Nummern (internationales Format)**: `+33639980012`, mehrere durch Kommas
+  getrennt (höchstens 10). Eine nationale Nummer wie `0639980012` wird
+  abgelehnt: Nur das internationale Format bedeutet für jede SIM-Karte
+  dasselbe.
+- **Text**: bis zu 1600 Zeichen (ein langer Text sind für deinen Anbieter
+  mehrere SMS). Tippe `{{`, um eine Information der Szene einzufügen: den Wert
+  eines Sensors, den Absender der empfangenen SMS, die Antwort der KI …
+- **SIM-Karte**: der Standard des Telefons oder SIM 1, 2 oder 3 bei einem
+  Dual-SIM-Telefon.
+- **Telefon**: im Cloud-Modus mit mehreren Telefonen dasjenige, das sendet.
+
+Die folgenden Aktionen der Szene können die **Kennung der Nachricht**, die
+**Anzahl der Empfänger** und den **Zustand beim Einreihen** lesen (`pending`,
+`sent`, `delivered`, `failed`). Kann die SMS nicht gesendet werden (ungültige
+Nummer, Stundengrenze erreicht, Telefon nicht erreichbar), schlägt die Aktion
+mit dem Grund in den Protokollen der Szene fehl, und die Szene läuft weiter.
+
+Um Meldungen von Gladys per SMS zu bekommen, füge diese Aktion dort ein, wo
+deine Szenen „Nachricht senden“ verwenden, mit demselben Text.
+
+## Szenenauslöser
+
+### SMS empfangen
+
+Startet die Szene, wenn das Telefon eine SMS empfängt. Filter: der
+**Absender** (genau wie das Telefon ihn anzeigt: `+33639980012` oder ein Name
+wie der einer Bank; leer = alle) und das **Telefon**. An die Aktionen
+übergebene Informationen: der Absender, der **Text der SMS**, der
+Empfangszeitpunkt und die SIM-Karte.
+
+Jede SMS startet die Szenen nur einmal, auch nach einem Neustart. SMS, die beim
+Start der Integration schon im Telefon sind, werden nicht gemeldet. Eine
+empfangene SMS ist nie ein Befehl einer vertrauenswürdigen Person: Der Absender
+einer SMS kann gefälscht werden.
+
+### SMS fehlgeschlagen
+
+Startet die Szene, wenn eine von Gladys gesendete SMS nicht gesendet oder
+zugestellt werden konnte, mit den nicht erreichten Empfängern und dem vom
+Telefon genannten Grund. Praktisch, um auf einen anderen Kanal auszuweichen.
+
+## Widget
+
+Das Widget **SMS-Gateway** zeigt den Akku, die SMS dieser Stunde im Vergleich
+zur Grenze, die empfangenen SMS, ob jedes Telefon erreichbar ist, und den
+Zustand der letzten fünf gesendeten SMS. Die Schaltfläche **Aktualisieren**
+liest das Telefon sofort. Wähle in den Einstellungen ein Telefon oder lass das
+Feld für alle leer.
+
+## Aktionen des Konfigurationsbildschirms
+
+- **Verbindung testen**: liest das Telefon jetzt und sagt, was antwortet:
+  Telefon, Akku, App-Version, Posteingang, SMS dieser Stunde.
+- **Test-SMS senden**: sendet eine SMS an die eingegebene Nummer, mit
+  derselben Grenze.
+- **Letzte SMS**: die letzten von Gladys gesendeten SMS und ihr Zustand:
+  ausstehend, gesendet, zugestellt oder fehlgeschlagen.
+
+## Beispiele für Szenen
+
+- **Wasserleck**: Auslöser „ein Wassermelder erkennt Wasser“ → Aktion **SMS
+  senden** an zwei Nummern, „Wasserleck in der Waschküche!“.
+- **SMS weitergeleitet**: Auslöser **SMS empfangen** → eine Gladys-Nachricht
+  „SMS von“ senden, gefolgt vom **Absender** und dem **Text der SMS** (tippe
+  `{{`, um sie einzufügen), um die SMS einer zweiten Leitung in der Gladys-App
+  zu lesen.
+- **Empfangsbestätigung**: Auslöser **SMS empfangen** mit dem Absender
+  `+33639980012` → **SMS senden** an den **Absender** (mit `{{` eingefügt):
+  „Erhalten, danke“. Schalte nie eine Alarmanlage scharf oder unscharf und
+  öffne nie eine Tür auf eine SMS hin: Der Absender einer SMS kann gefälscht werden.
+- **Plan B**: Auslöser **SMS fehlgeschlagen** → eine Nachricht über Telegram
+  mit den nicht erreichten Empfängern senden.
+- **Altes Telefon im Blick**: Auslöser „Akku des Telefons unter 15“ → die
+  Familie in der Gladys-App benachrichtigen.
+
+## Fehlerbehebung
+
+- **„keine Antwort“**: Das Telefon ist aus, die App gestoppt oder die Adresse
+  hat sich geändert. Öffne die App, prüfe, ob der Server läuft und Android sie
+  nicht schlafen legt (Einstellungen → Akku → keine Optimierung für SMS
+  Gateway).
+- **„Benutzername oder Passwort abgelehnt“**: Kopiere sie erneut aus der App;
+  das lokale und das Cloud-Paar sind verschieden.
+- **„Adresse der API unbekannt“**: Aktualisiere die App; bei einem privaten
+  Server prüfe seine Adresse.
+- **Keine empfangenen SMS in Gladys**: Die App muss 1.59.0 oder neuer sein und
+  **Empfangene SMS lesen** aktiv. In der App muss die
+  Ende-zu-Ende-Verschlüsselung aus sein: Eine verschlüsselte SMS kann nicht
+  gelesen werden.
+- **„Grenze von 20 SMS pro Stunde erreicht“**: Eine Szene sendet mehr als
+  erwartet. Suche eine Schleife oder erhöhe die Grenze.
+- **Die SMS bleibt „gesendet“**: Dein Anbieter liefert keine
+  Zustellberichte.
+- Protokolle: Integrationen → SMS Gateway for Android → Protokolle. Setze
+  `LOG_LEVEL=debug`, um jede Abfrage zu sehen. Nummern erscheinen maskiert
+  (letzte zwei Ziffern), Texte nie.
+
+## Grenzen
+
+- Ohne Telefon entwickelt: Die API wurde nach ihrer Dokumentation und ihrem
+  Quellcode simuliert.
+- Nur SMS: keine MMS, keine binären Daten-SMS.
+- Empfangene SMS werden in jedem Intervall gelesen (standardmäßig 1 Minute),
+  nicht sofort: Die Webhooks der App brauchen eine Adresse, die das Telefon
+  erreichen kann, und die Sandbox von Gladys bietet keine.
+- Der Akku ist nur im lokalen Modus bekannt; im Cloud-Modus hängt „Telefon
+  erreichbar“ vom letzten Kontakt der App mit dem Server ab.
+- „Nachricht senden“ des Kerns und Systemmeldungen gehen nicht per SMS raus:
+  Verwende die Aktion **SMS senden** in deinen Szenen.
+- Ein selbstsigniertes Zertifikat auf einem privaten Server wird abgelehnt.
+- Android selbst begrenzt, wie viele SMS eine App in kurzer Zeit senden darf:
+  Darüber kann das Telefon auf seinem Bildschirm eine Bestätigung verlangen.

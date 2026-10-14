@@ -1,0 +1,210 @@
+# SMS Gateway for Android
+
+Envíe SMS desde sus escenas de Gladys e inicie escenas cuando llegue un SMS,
+con un teléfono Android y la aplicación libre
+[SMS Gateway for Android](https://github.com/capcom6/android-sms-gateway).
+Funciona con cualquier operador, sin servicio de terceros de pago: basta con un
+teléfono antiguo con tarjeta SIM.
+
+**Desarrollada sin el hardware: sus comentarios son bienvenidos.** Esta
+integración se escribió y probó contra una simulación de la API de la
+aplicación, no con un teléfono real. Indique lo que funciona y lo que no en
+[GitHub](https://github.com/guim31/gladys-sms-gateway/issues).
+
+Esta integración no está afiliada al proyecto SMS Gateway for Android.
+
+## Requisitos
+
+- Gladys 5.1.0 o posterior.
+- Un teléfono Android (5.0 o posterior) con una tarjeta SIM que pueda enviar
+  SMS, enchufado de forma permanente.
+- La aplicación SMS Gateway for Android, versión 1.59.0 o posterior para leer
+  los SMS recibidos:
+  [descárguela desde GitHub](https://github.com/capcom6/android-sms-gateway/releases).
+- Las tarifas de su operador se aplican a cada SMS enviado.
+
+## Configuración
+
+Abra la aplicación y elija cómo contacta Gladys con el teléfono.
+
+### Red local (recomendado)
+
+1. En la aplicación, active **Local server**. Muestra la dirección (por
+   ejemplo `192.168.1.50:8080`), un usuario y una contraseña.
+2. Asigne al teléfono una dirección fija en su router.
+3. En Gladys, elija **Red local** e introduzca la dirección, el usuario y la
+   contraseña.
+
+Nada sale de su casa: Gladys habla con el teléfono a través de su red.
+
+### Servidor en la nube
+
+1. En la aplicación, active **Cloud server**. Muestra un usuario y una
+   contraseña.
+2. En Gladys, elija **Servidor en la nube** e introduzca el usuario y la
+   contraseña.
+
+Los SMS pasan por el servidor público del proyecto, `api.sms-gate.app`,
+gestionado por su autor. Active el ajuste **Ping** de la aplicación para que el
+servidor sepa que el teléfono sigue activo, y elija en **Teléfono inaccesible
+tras (nube)** cuánto silencio es aceptable.
+
+### Servidor privado
+
+Si aloja usted mismo el servidor SMS Gateway, elija **Servidor privado** e
+introduzca su dirección (por ejemplo `https://sms.example.com`), y luego el
+usuario y la contraseña de la tarjeta **Cloud server** de la aplicación. El
+interruptor «Preferir la conexión local» que muestra Gladys no tiene efecto
+aquí: decide el ajuste **Conexión**.
+
+### Seguridad de los envíos
+
+Un SMS puede costar dinero, y una escena puede entrar en bucle (por ejemplo,
+una escena que responde a cada SMS recibido frente a una respuesta
+automática). **SMS por hora, como máximo** (20 por defecto) limita lo que
+Gladys envía en cualquier hora deslizante: por encima, el SMS se rechaza y la
+escena indica el motivo y cuándo será posible el siguiente. Un mensaje a tres
+números cuenta como tres SMS. El límite se mantiene tras un reinicio de la
+integración.
+
+### SMS recibidos y actualización
+
+Gladys lee el teléfono con el **Intervalo de actualización** (1 minuto por
+defecto): su estado, los SMS que envió y los SMS recibidos, que inician las
+escenas con el disparador **SMS recibido**. Desactive **Leer los SMS
+recibidos** si solo envía. **Idioma de nombres y mensajes** fija los nombres
+de los dispositivos (francés por defecto) y el idioma de los mensajes de la
+acción de escena.
+
+## El dispositivo
+
+Cada teléfono se convierte en un dispositivo **Pasarela SMS** en la pestaña
+Descubrir, con:
+
+| Función              | Lo que muestra                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| Teléfono accesible   | 1 cuando el teléfono responde (local) o contactó con el servidor recientemente        |
+| Batería del teléfono | Nivel de batería, en porcentaje (solo modo local)                                     |
+| Teléfono cargando    | 1 cuando el teléfono se está cargando (solo modo local)                               |
+| SMS enviados         | SMS enviados por Gladys desde la instalación de la integración (uno por destinatario) |
+| SMS fallidos         | SMS que no se pudieron enviar o entregar                                              |
+| SMS recibidos        | SMS recibidos mientras Gladys leía el teléfono                                        |
+
+Una escena puede usarlas como cualquier dispositivo: «si Batería del teléfono
+es inferior a 20» o «si Teléfono accesible vale 0», para recibir un aviso por
+otro canal.
+
+## Acción de escena: Enviar un SMS
+
+La acción **Enviar un SMS** envía un mensaje:
+
+- **Números (formato internacional)**: `+33639980012`, varios separados por
+  comas (10 como máximo). Un número nacional como `0639980012` se rechaza: el
+  formato internacional es el único que significa lo mismo para cualquier
+  tarjeta SIM.
+- **Texto**: hasta 1600 caracteres (un texto largo son varios SMS para su
+  operador). Escriba `{{` para insertar información de la escena: el valor de
+  un sensor, el remitente del SMS recibido, la respuesta de la IA…
+- **Tarjeta SIM**: la predeterminada del teléfono, o SIM 1, 2 o 3 en un
+  teléfono con doble SIM.
+- **Teléfono**: en modo nube con varios teléfonos, el que envía.
+
+Las acciones siguientes de la escena pueden leer el **Identificador del
+mensaje**, el **Número de destinatarios** y el **Estado al ponerse en cola**
+(`pending`, `sent`, `delivered`, `failed`). Si el SMS no se puede enviar
+(número no válido, límite por hora alcanzado, teléfono inaccesible), la acción
+falla con el motivo en los registros de la escena, y la escena continúa.
+
+Para recibir los mensajes de Gladys por SMS, añada esta acción allí donde sus
+escenas usan «Enviar mensaje», con el mismo texto.
+
+## Disparadores de escena
+
+### SMS recibido
+
+Inicia la escena cuando el teléfono recibe un SMS. Filtros: el **Remitente**
+(exactamente como lo muestra el teléfono: `+33639980012`, o un nombre como el
+de un banco; vacío = cualquiera) y el **Teléfono**. Información transmitida a
+las acciones: el remitente, el **Texto del SMS**, la hora de recepción y la
+tarjeta SIM.
+
+Cada SMS inicia las escenas una sola vez, incluso tras un reinicio. Los SMS que
+ya están en el teléfono al iniciar la integración no se anuncian. Un SMS
+recibido nunca es una orden de una persona de confianza: el remitente de un
+SMS puede falsificarse.
+
+### SMS fallido
+
+Inicia la escena cuando un SMS enviado por Gladys no se ha podido enviar o
+entregar, con los destinatarios no alcanzados y el motivo indicado por el
+teléfono. Útil para recurrir a otro canal.
+
+## Widget
+
+El widget **Pasarela SMS** muestra la batería, los SMS enviados en esta hora
+frente al límite, los SMS recibidos, si cada teléfono es accesible y el estado
+de los cinco últimos SMS enviados. El botón **Actualizar** lee el teléfono en
+el acto. Elija un teléfono en sus ajustes, o déjelo vacío para todos.
+
+## Acciones de la pantalla de configuración
+
+- **Probar la conexión**: lee el teléfono ahora e indica lo que responde:
+  teléfono, batería, versión de la aplicación, bandeja de entrada, SMS de esta
+  hora.
+- **Enviar un SMS de prueba**: envía un SMS al número introducido, con el
+  mismo límite.
+- **Últimos SMS**: los últimos SMS enviados por Gladys y su estado: pendiente,
+  enviado, entregado o fallido.
+
+## Ejemplos de escenas
+
+- **Fuga de agua**: disparador «un detector de fugas detecta agua» → acción
+  **Enviar un SMS** a dos números, «¡Fuga de agua en el lavadero!».
+- **SMS reenviados**: disparador **SMS recibido** → enviar un mensaje de Gladys
+  «SMS de» seguido del **Remitente** y del **Texto del SMS** (escriba `{{` para
+  insertarlos), para leer los SMS de una segunda línea en la aplicación Gladys.
+- **Acuse de recibo**: disparador **SMS recibido** con el remitente
+  `+33639980012` → **Enviar un SMS** al **Remitente** (insertado con `{{`):
+  «Recibido, gracias». No arme ni desarme nunca una alarma, ni abra una puerta,
+  a partir de un SMS: su remitente puede falsificarse.
+- **Plan B**: disparador **SMS fallido** → enviar un mensaje por Telegram con
+  los destinatarios no alcanzados.
+- **Vigilancia del teléfono antiguo**: disparador «Batería del teléfono es
+  inferior a 15» → avisar a la familia en la aplicación Gladys.
+
+## Solución de problemas
+
+- **«sin respuesta»**: el teléfono está apagado, la aplicación detenida o la
+  dirección ha cambiado. Abra la aplicación, compruebe que el servidor está
+  activo y que Android no la pone en reposo (Ajustes → Batería → sin
+  optimización para SMS Gateway).
+- **«usuario o contraseña rechazados»**: vuelva a copiarlos desde la
+  aplicación; los pares local y nube son distintos.
+- **«dirección desconocida para la API»**: actualice la aplicación; para un
+  servidor privado, compruebe su dirección.
+- **No llega ningún SMS recibido a Gladys**: la aplicación debe ser 1.59.0 o
+  posterior, y **Leer los SMS recibidos** debe estar activado. En la
+  aplicación, el cifrado de extremo a extremo debe estar desactivado: un SMS
+  cifrado no se puede leer.
+- **«Límite de 20 SMS por hora alcanzado»**: una escena envía más de lo
+  previsto. Busque un bucle, o aumente el límite.
+- **El SMS se queda en «enviado»**: su operador no devuelve acuses de entrega.
+- Registros: Integraciones → SMS Gateway for Android → Registros. Configure
+  `LOG_LEVEL=debug` para ver cada lectura. Los números aparecen enmascarados
+  (dos últimas cifras), los textos nunca.
+
+## Limitaciones
+
+- Desarrollada sin teléfono: la API se simuló a partir de su documentación y
+  su código fuente.
+- Solo SMS: ni MMS, ni SMS de datos binarios.
+- Los SMS recibidos se leen en cada intervalo (1 minuto por defecto), no al
+  instante: los webhooks de la aplicación necesitan una dirección que el
+  teléfono pueda alcanzar, y el entorno aislado de Gladys no la ofrece.
+- La batería solo se conoce en modo local; en modo nube, «Teléfono accesible»
+  depende del último contacto de la aplicación con el servidor.
+- «Enviar mensaje» del núcleo y los mensajes del sistema no salen por SMS:
+  use la acción **Enviar un SMS** en sus escenas.
+- Se rechaza un certificado autofirmado en un servidor privado.
+- El propio Android limita cuántos SMS puede enviar una aplicación en poco
+  tiempo: por encima, el teléfono puede pedir una confirmación en su pantalla.

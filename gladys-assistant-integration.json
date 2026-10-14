@@ -8,8 +8,8 @@
     "de": "Sende und empfange SMS aus Gladys mit einem Android-Telefon und der freien App SMS Gateway.",
     "es": "Envíe y reciba SMS desde Gladys con un teléfono Android y la aplicación libre SMS Gateway."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/guim31/gladys-sms-gateway:1.0.0",
+  "version": "1.0.1",
+  "docker_image": "ghcr.io/guim31/gladys-sms-gateway:1.0.1",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-sms-gateway/main/cover.png",
   "categories": ["notifications"],

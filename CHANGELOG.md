@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-14
+
 ### Added
 
 - Send SMS from Gladys scenes with an Android phone running SMS Gateway for
@@ -30,4 +32,5 @@ the notes of the version's GitHub Release.
   test SMS" and "Recent SMS" actions on the Configuration screen.
 - Texts and documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-sms-gateway/commits/main
+[Unreleased]: https://github.com/guim31/gladys-sms-gateway/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/guim31/gladys-sms-gateway/releases/tag/v1.0.1
